@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\EmailSendEvent;
+use App\Events\Event;
 use App\ImageUpload;
 use Illuminate\Http\Request;
 
@@ -33,8 +35,16 @@ class ImageUploadController extends Controller
         ]);
         $imageUpload = ImageUpload::imageUpload($request);
         $allImage = ImageUpload::getImage();
+        $receiverEmail = [
+            "fromEmail" => "crazydev82@gmail.com",
+            "to" => "akash.sanariya@brainvire.com",
+            "data" => "Your Image Add Successfully",
+            "subject" => "Added Image Successfully"
+        ];
+        event(new EmailSendEvent($receiverEmail));
         return response()->json([
             'message' => 'Your Image Upload Successfully.',
+            'mail' => 'Check Your Mail Also',
             'Image' => $allImage
         ], 200);
     }
