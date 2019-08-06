@@ -87,6 +87,7 @@ class ImageUpload extends Model
         /* For Old Image Path */
         try{
             $oldImagePath = ImageUpload::findOrfail($id);
+            $name = $oldImagePath['name'];
         }
         catch(ModelNotFoundException $e){
             return response();
@@ -94,6 +95,9 @@ class ImageUpload extends Model
 
 
         /* If Not Select Image Than*/
+        if(isset($request->name)){
+            $name = $request->name;
+        }
         if(isset($request->path)){
             $newImageName = self::imageNameChange($request);
             $path = 'image_upload/'.$newImageName;
@@ -107,7 +111,7 @@ class ImageUpload extends Model
         
         /* Update New Image*/
         $newData = [
-            'name' => $request->name,
+            'name' => $name,
             'path' => $path
         ];
         $imageUpdate = ImageUpload::where('id', $id)
