@@ -85,8 +85,13 @@ class ImageUpload extends Model
     public static function updateImage($id, $request){
 
         /* For Old Image Path */
-        $oldImagePath = ImageUpload::where('id', $id)
-            ->get();
+        try{
+            $oldImagePath = ImageUpload::findOrfail($id);
+        }
+        catch(ModelNotFoundException $e){
+            return response();
+        }
+
 
         /* If Not Select Image Than*/
         if(isset($request->path)){

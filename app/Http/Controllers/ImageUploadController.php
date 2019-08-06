@@ -6,6 +6,7 @@ use App\Events\EmailSendEvent;
 use App\Events\Event;
 use App\ImageUpload;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class ImageUploadController
@@ -79,8 +80,9 @@ class ImageUploadController extends Controller
             ], 200);
         }
         else{
+//            Log::error($imageUpdate);
             return response()->json([
-                'message' => '!Opps Some Error Occurs While Update Data'
+                'message' => 'Data Could Not Be Found'
             ]);
         }
     }
