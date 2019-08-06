@@ -98,10 +98,10 @@ class ImageUpload extends Model
             $newImageName = self::imageNameChange($request);
             $path = 'image_upload/'.$newImageName;
             /* Remove Old Image */
-            unlink($oldImagePath['0']['path']);
+            unlink($oldImagePath['path']);
         }
         else{
-            $newImageName = $oldImagePath['0']['path'];
+            $newImageName = $oldImagePath['path'];
             $path = $newImageName;
         }
         

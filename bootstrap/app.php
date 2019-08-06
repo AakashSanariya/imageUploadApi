@@ -22,7 +22,7 @@ $app = new Laravel\Lumen\Application(
 );
 
  $app->withFacades();
-
+ $app->configure('auth');
  $app->withEloquent();
 
 /*
@@ -62,9 +62,10 @@ $app->singleton(
 //     App\Http\Middleware\ExampleMiddleware::class
 // ]);
 
-// $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
-// ]);
+ $app->routeMiddleware([
+     'auth' => App\Http\Middleware\Authenticate::class,
+     'client' => \Laravel\Passport\Http\Middleware\CheckClientCredentials::class,
+ ]);
 
 /*
 |--------------------------------------------------------------------------
@@ -78,17 +79,22 @@ $app->singleton(
 */
 
 // $app->register(App\Providers\AppServiceProvider::class);
-// $app->register(App\Providers\AuthServiceProvider::class);
+ $app->register(App\Providers\AuthServiceProvider::class);
  $app->register(App\Providers\EventServiceProvider::class);
+
+/* PassPort Service Provide*/
+ $app->register(Laravel\Passport\PassportServiceProvider::class);
+ $app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
+ Dusterio\LumenPassport\LumenPassport::routes($app->router, ['prefix' => 'api/oauth'] );
 
 /*
     Mail Service Provider
 */
-$app->configure('mail');
-$app->alias('mailer', Illuminate\Mail\Mailer::class);
-$app->alias('mailer', Illuminate\Contracts\Mail\Mailer::class);
-$app->alias('mailer', Illuminate\Contracts\Mail\MailQueue::class);
-$app->register(Illuminate\Mail\MailServiceProvider::class);
+ $app->configure('mail');
+ $app->alias('mailer', Illuminate\Mail\Mailer::class);
+ $app->alias('mailer', Illuminate\Contracts\Mail\Mailer::class);
+ $app->alias('mailer', Illuminate\Contracts\Mail\MailQueue::class);
+ $app->register(Illuminate\Mail\MailServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------

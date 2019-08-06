@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\EmailSendEvent;
 use App\Events\Event;
 use App\ImageUpload;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -42,6 +43,7 @@ class ImageUploadController extends Controller
             "data" => "Your Image Add Successfully",
             "subject" => "Added Image Successfully"
         ];
+        /* For Sending Mail*/
         event(new EmailSendEvent($receiverEmail));
         return response()->json([
             'message' => 'Your Image Upload Successfully.',
@@ -80,7 +82,7 @@ class ImageUploadController extends Controller
             ], 200);
         }
         else{
-//            Log::error($imageUpdate);
+            Log::error(['There was not data on this Id', $id]);
             return response()->json([
                 'message' => 'Data Could Not Be Found'
             ]);
@@ -100,8 +102,24 @@ class ImageUploadController extends Controller
             ], 200);
         }
         else{
+            Log::critical(['This Id would not found also It will be Deleted', $id]);
             return response()->json([
                 'message' => 'Image Not Found.'
+            ]);
+        }
+    }
+
+    public function userLogin(Request $request){
+        $userAuth = User::getLogin($request);
+        if($userAuth != "NULL"){
+            return response()->json([
+                'message' => 'Login Successfully',
+                'token' => $userAuth
+            ], 200);
+        }
+        else{
+            return response()->json([
+                'message' => '!Opps Some Error Occurs In Login'
             ]);
         }
     }

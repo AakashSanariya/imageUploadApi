@@ -10,7 +10,8 @@
 | and give it the Closure to call when that URI is requested.
 |
 */
-$router->group(['prefix' => 'api'], function ($router){
+$router->post('api/users/login/', 'ImageUploadController@userLogin');
+$router->group(['prefix' => 'api', 'middleware' => 'client'], function ($router){
     $router->get('/', 'ImageUploadController@index');
     $router->post('uploadimage', 'ImageUploadController@store');
     $router->post('updateimage/{id}', 'ImageUploadController@update');
