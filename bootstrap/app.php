@@ -97,6 +97,10 @@ $app->singleton(
  $app->register(Illuminate\Mail\MailServiceProvider::class);
 
 /*
+ * For Validation Configuration
+ * */
+ $app->configure('image_upload_validation');
+/*
 |--------------------------------------------------------------------------
 | Load The Application Routes
 |--------------------------------------------------------------------------

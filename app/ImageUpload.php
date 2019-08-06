@@ -98,6 +98,9 @@ class ImageUpload extends Model
         if(isset($request->name)){
             $name = $request->name;
         }
+        if($request->name == ""){
+            $name = $oldImagePath['name'];
+        }
         if(isset($request->path)){
             $newImageName = self::imageNameChange($request);
             $path = 'image_upload/'.$newImageName;

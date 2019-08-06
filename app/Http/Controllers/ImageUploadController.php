@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Events\EmailSendEvent;
-use App\Events\Event;
 use App\ImageUpload;
 use App\User;
+use Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Mockery\CountValidator\Exception;
+use Prophecy\Exception\Doubler\MethodNotFoundException;
 
 /**
  * Class ImageUploadController
@@ -31,25 +33,28 @@ class ImageUploadController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request){
-        $validation = $this->validate($request, [
-            'name' => 'required|min:3',
-            'path' => 'required|image|mimes:jpeg,jpg,png'
-        ]);
-        $imageUpload = ImageUpload::imageUpload($request);
-        $allImage = ImageUpload::getImage();
-        $receiverEmail = [
-            "fromEmail" => "crazydev82@gmail.com",
-            "to" => "akash.sanariya@brainvire.com",
-            "data" => "Your Image Add Successfully",
-            "subject" => "Added Image Successfully"
-        ];
-        /* For Sending Mail*/
-        event(new EmailSendEvent($receiverEmail));
-        return response()->json([
-            'message' => 'Your Image Upload Successfully.',
-            'mail' => 'Check Your Mail Also',
-            'Image' => $allImage
-        ], 200);
+        $validations = config('image_upload_validation.add_image_validation');
+        $validation = Validator::make($request->all(), $validations);
+        if($validation->fails()){
+            return $this->validationError($validation);
+        }
+        try{
+            $imageUpload = ImageUpload::imageUpload($request);
+            $allImage = ImageUpload::getImage();
+            $receiverEmail = [
+                "fromEmail" => "crazydev82@gmail.com",
+                "to" => "akash.sanariya@brainvire.com",
+                "data" => "Your Image Add Successfully",
+                "subject" => "Added Image Successfully"
+            ];
+            /* For Sending Mail*/
+            event(new EmailSendEvent($receiverEmail));
+            return $this->success(null, 'IMAGE_INSERT_SUCCESS', 200);
+        }
+        catch (MethodNotFoundException $e){
+                return $this->error($e->getMessage());
+        }
+
     }
 
     /**
@@ -58,10 +63,12 @@ class ImageUploadController extends Controller
      */
     public function index(){
         $imageShow = ImageUpload::getImage();
-        return response()->json([
-            'message' => 'Receive Image Successfully',
-            'Data' => $imageShow
-        ], 200);
+        try{
+            return $this->success(['ImageData' => $imageShow], 'IMAGE_LIST_SUCCESS', 200);
+        }
+        catch (Exception $e){
+            return $this->error('ERROR_FETCH_RECORDS_OF_IMAGE');
+        }
     }
 
     /**
@@ -71,21 +78,18 @@ class ImageUploadController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function update($id, Request $request){
-        $validation = $this->validate($request, [
-            'name' => 'min:3',
-            'path' => 'image|mimes:jpg,jpeg,png'
-        ]);
-        $imageUpdate = ImageUpload::updateImage($id, $request);
-        if($imageUpdate == "1"){
-            return response()->json([
-                'message' => 'Update details Successfully'
-            ], 200);
+        $validations = config('image_upload_validation.update_image_validation');
+        $validation = Validator::make($request->all(), $validations);
+        if($validation->fails()){
+            return $this->validationError($validation);
         }
-        else{
+        try{
+            $imageUpdate = ImageUpload::updateImage($id, $request);
+            return $this->success(null, 'UPDATE_IMAGE_SUCCESS', 200);
+        }
+        catch (Exception $e){
             Log::error(['There was not data on this Id', $id]);
-            return response()->json([
-                'message' => 'Data Could Not Be Found'
-            ]);
+            return $this->error('IMAGE_NOT_EXISTS', 404);
         }
     }
 
@@ -95,32 +99,23 @@ class ImageUploadController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function delete($id){
-        $imageDelete = ImageUpload::deleteImage($id);
-        if($imageDelete == "1"){
-            return response()->json([
-                'message' => "Image Delete Successfully"
-            ], 200);
+        try{
+            $imageDelete = ImageUpload::deleteImage($id);
+            return $this->success(null, 'IMAGE_DELETE_SUCCESS', 200);
         }
-        else{
+        catch (Exception $e){
             Log::critical(['This Id would not found also It will be Deleted', $id]);
-            return response()->json([
-                'message' => 'Image Not Found.'
-            ]);
+            return $this->error('IMAGE_NOT_DELETE', 400);
         }
     }
 
     public function userLogin(Request $request){
         $userAuth = User::getLogin($request);
         if($userAuth != "NULL"){
-            return response()->json([
-                'message' => 'Login Successfully',
-                'token' => $userAuth
-            ], 200);
+            return $this->success(['token' => $userAuth], 'Admin User is Logging', 200);
         }
         else{
-            return response()->json([
-                'message' => '!Opps Some Error Occurs In Login'
-            ]);
+            return $this->error('TOKEN_NOT_GENERATED', 401);
         }
     }
 }
