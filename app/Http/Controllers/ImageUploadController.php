@@ -24,7 +24,10 @@ class ImageUploadController extends Controller
      */
     public function __construct()
     {
-        //
+        $this->middleware('role_permission:LIST_IMAGE', ['only' => 'index']);
+        $this->middleware('role_permission:ADD_IMAGE', ['only' => 'store']);
+        $this->middleware('role_permission:UPDATE_IMAGE', ['only' => 'update']);
+        $this->middleware('role_permission:DELETE_IMAGE', ['only' => 'delete']);
     }
 
     /**

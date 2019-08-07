@@ -65,6 +65,9 @@ $app->singleton(
  $app->routeMiddleware([
      'auth' => App\Http\Middleware\Authenticate::class,
      'client' => \Laravel\Passport\Http\Middleware\CheckClientCredentials::class,
+     'permission' => Spatie\Permission\Middlewares\PermissionMiddleware::class,
+     'role'       => Spatie\Permission\Middlewares\RoleMiddleware::class,
+     'role_permission' => \App\Http\Middleware\RolePermissionMiddleware::class,
  ]);
 
 /*
@@ -100,6 +103,14 @@ $app->singleton(
  * For Validation Configuration
  * */
  $app->configure('image_upload_validation');
+
+/*
+ * For Spatie Role and Permission
+ *
+ * */
+ $app->configure('permission');
+ $app->alias('cache', \Illuminate\Cache\CacheManager::class);
+ $app->register(Spatie\Permission\PermissionServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes
