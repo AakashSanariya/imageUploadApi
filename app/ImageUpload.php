@@ -56,12 +56,12 @@ class ImageUpload extends Model
      * @param $request
      * @return mixed
      */
-    public static function imageUpload($request){
+    public static function imageUpload($request,$path){
         if($request->file('path')){
-            $newImageName = self::imageNameChange($request);
+//            $newImageName = self::imageNameChange($request);
             $imageData = [
                 'name' => $request->name,
-                'path' => 'image_upload/'.$newImageName
+                'path' => 'image_upload/'.$path
             ];
             $data = ImageUpload::create($imageData);
             return $data;
@@ -82,7 +82,7 @@ class ImageUpload extends Model
      * @param $request
      * @return mixed
      */
-    public static function updateImage($id, $request){
+    public static function updateImage($id, $request,$imageName){
 
         /* For Old Image Path */
         try{
@@ -102,8 +102,8 @@ class ImageUpload extends Model
             $name = $oldImagePath['name'];
         }
         if(isset($request->path)){
-            $newImageName = self::imageNameChange($request);
-            $path = 'image_upload/'.$newImageName;
+//            $newImageName = self::imageNameChange($request);
+            $path = 'image_upload/'.$imageName;
             /* Remove Old Image */
             unlink($oldImagePath['path']);
         }
@@ -130,13 +130,13 @@ class ImageUpload extends Model
     public static function deleteImage($id){
         try{
             $imagePath = ImageUpload::findOrfail($id);
+            unlink($imagePath['path']);
+            $deleteImage = ImageUpload::where('id', $id)
+                ->delete();
+            return $deleteImage;
         }
         catch (ModelNotFoundException $e){
-            return response();
+            return false;
         }
-        unlink($imagePath['path']);
-        $deleteImage = ImageUpload::where('id', $id)
-            ->delete();
-        return $deleteImage;
     }
 }

@@ -102,7 +102,7 @@ $app->singleton(
 /*
  * For Validation Configuration
  * */
- $app->configure('image_upload_validation');
+ $app->configure('image_upload');
 
 /*
  * For Spatie Role and Permission

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Events\EmailSendEvent;
+use App\Http\Helpers\UploadImageTrait;
 use App\ImageUpload;
 use App\User;
+use Illuminate\Support\Facades\Auth;
 use Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -17,6 +19,7 @@ use Prophecy\Exception\Doubler\MethodNotFoundException;
  */
 class ImageUploadController extends Controller
 {
+    use UploadImageTrait;
     /**
      * Create a new controller instance.
      *
@@ -36,13 +39,12 @@ class ImageUploadController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request){
-        $validations = config('image_upload_validation.add_image_validation');
+        $validations = config('image_upload.add_image_validation');
         $validation = Validator::make($request->all(), $validations);
         if($validation->fails()){
             return $this->validationError($validation);
         }
         try{
-            $imageUpload = ImageUpload::imageUpload($request);
             $allImage = ImageUpload::getImage();
             $receiverEmail = [
                 "fromEmail" => "crazydev82@gmail.com",
@@ -50,6 +52,14 @@ class ImageUploadController extends Controller
                 "data" => "Your Image Add Successfully",
                 "subject" => "Added Image Successfully"
             ];
+
+            /* For Image Upload Using BaseStructure */
+            $userId = Auth::user()->id;
+            $image = $request->file('path');
+            if($image){
+                $imagePath = $this->uploadProfile($image,$userId);
+            }
+            $imageUpload = ImageUpload::imageUpload($request,$imagePath);
             /* For Sending Mail*/
             event(new EmailSendEvent($receiverEmail));
             return $this->success(null, 'IMAGE_INSERT_SUCCESS', 200);
@@ -81,13 +91,17 @@ class ImageUploadController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function update($id, Request $request){
-        $validations = config('image_upload_validation.update_image_validation');
+        $validations = config('image_upload.update_image_validation');
         $validation = Validator::make($request->all(), $validations);
         if($validation->fails()){
             return $this->validationError($validation);
         }
         try{
-            $imageUpdate = ImageUpload::updateImage($id, $request);
+            $image = $request->file('path');
+            if($image != "NULL"){
+                $imageName = $this->uploadProfile($image, $id);
+            }
+            $imageUpdate = ImageUpload::updateImage($id, $request, $imageName);
             return $this->success(null, 'UPDATE_IMAGE_SUCCESS', 200);
         }
         catch (Exception $e){
@@ -104,6 +118,9 @@ class ImageUploadController extends Controller
     public function delete($id){
         try{
             $imageDelete = ImageUpload::deleteImage($id);
+            if($imageDelete == false){
+                return $this->error('IMAGE_NOT_FOUND', 404);
+            }
             return $this->success(null, 'IMAGE_DELETE_SUCCESS', 200);
         }
         catch (Exception $e){
@@ -119,6 +136,22 @@ class ImageUploadController extends Controller
         }
         else{
             return $this->error('TOKEN_NOT_GENERATED', 401);
+        }
+    }
+
+    public function uploadProfile($image, $id){
+        if ($image) {
+            $imageData = [
+                'id' => $id,
+                'image' => $image,
+                'folder_name' => 'image_upload'
+            ];
+            $imageName = $this->uploadImage($imageData);
+            if ($imageName) {
+                return $imageName;
+            } else {
+                return 'Error in image upload!';
+            }
         }
     }
 }
